@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live View</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Bowlby+One+SC">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        @font-face {
+            font-family: 'Bowlby One SC';
+            src: url('/birdhouse-cam-bowlby-one-sc-regular.ttf') format('truetype');
+        }
+        body {
+            background-color: #C9EFC7;
+            font-family: 'Bowlby One SC', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        img.logo {
+            display: block;
+            width: 200px;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            opacity: 0.4;
+        }
+        .live-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 10px 0;
+            max-width: 90%;
+            height: 70vh; /* Adjusted the height to give more space to the image */
+        }
+
+        img.live-stream {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Changed to cover to fill the container */
+        }
+        .stream-info {
+            text-align: center;
+            font-size: 0.8em;
+            margin-bottom: 20px; /* add a specific margin */
+        }
+        header {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 0.8em;
+        }
+        .stream-info {
+            text-align: center;
+            font-size: 0.8em;
+        }
+        .btn-container {
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            padding: 2vh 0;
+            position: absolute;
+            bottom: 2vh;
+        }
+        .btn {
+            padding: 10px;
+            background-color: #808080;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        /* hide logo when in landscape */
+        @media (orientation: landscape) {
+            img.logo {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header id="date-time">Loading...</header>
+    <a href="/">
+        <img class="logo" src="/birdhouse-cam-low-resolution-color-logo.jpeg" alt="Birdhouse Cam Logo">
+    </a>
+    <div class="live-container">
+        <img class="live-stream" src="/stream" alt="Live Stream">
+    </div>
+
+    <button id="lights-button">Lights</button>
+    <div id="color-toolbar" style="display:none;">
+        <div class="color-circle" style="background: red;" data-color="red"></div>
+        <div class="color-circle" style="background: green;" data-color="green"></div>
+        <div class="color-circle" style="background: blue;" data-color="blue"></div>
+        <div class="color-circle" style="background: orange;" data-color="orange"></div>
+        <div class="color-circle" style="background: purple;" data-color="purple"></div>
+        <div class="color-circle" style="background: yellow;" data-color="yellow"></div>
+        <div class="color-circle" style="background: white;" data-color="white"></div>
+        <div class="color-circle" style="background: #FFD700;" data-color="warm"></div> <!-- Warm Light -->
+        <input type="range" id="brightness-slider" min="0" max="255" value="127">
+    </div> 
+    <div class="btn-container">
+        <button class="btn" onclick="stopAndRedirect()">Go Back</button>
+    </div>
+    <script>
+        const updateDateTime = () => {
+            const dateTimeElement = document.getElementById('date-time');
+            dateTimeElement.textContent = new Date().toLocaleString();
+        };
+
+        const stopAndRedirect = () => {
+            window.stop(); // Stops the browser from loading the page
+            window.location.href='/'; // Redirect to /stopstream
+        };
+
+        updateDateTime(); // Initial update
+
+        // Update the date-time every 5 seconds (adjust as needed)
+        setInterval(updateDateTime, 5000);
+        
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            var lightsButton = document.getElementById('lights-button');
+            var colorToolbar = document.getElementById('color-toolbar');
+            lightsButton.addEventListener('click', function() {
+                colorToolbar.style.display = colorToolbar.style.display === 'none' ? 'block' : 'none';
+            });
+
+            var colorCircles = document.querySelectorAll('.color-circle');
+            colorCircles.forEach(function(circle) {
+                circle.addEventListener('click', function() {
+                    var color = this.getAttribute('data-color');
+                    var brightness = document.getElementById('brightness-slider').value;
+                    fetch('/control_lights', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ color: color, brightness: brightness }),
+                    })
+                    .then(response => response.json())
+                    .then(data => console.log(data))
+                    .catch((error) => {
+                        console.error('Error:', error);
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
