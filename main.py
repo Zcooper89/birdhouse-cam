@@ -12,7 +12,7 @@ from machine import Pin
 import neopixel
 
 # Setup the neopixel
-np = neopixel.NeoPixel(Pin(12), 16)  # Assuming there's only 1 LED
+np = neopixel.NeoPixel(Pin(12), 16)
 import ujson
 
 app = Microdot()
@@ -159,14 +159,10 @@ async def save_settings(request):
     setup_camera(settings)
     return Response(ujson.dumps({"message": "Settings saved successfully!"}), content_type='application/json')
 
-@app.route('/lights', methods=['GET'])
-def lights_page(request):
-    return send_file('lights.html')
-
 @app.route('/control_lights', methods=['POST'])
 async def control_lights(request):
     data = await request.json()
-    if not data:
+    if data is None:
         return Response(ujson.dumps({'error': 'No data provided'}), status_code=400, content_type='application/json')
     color = data.get('color')
     brightness = int(data.get('brightness'))
@@ -189,8 +185,7 @@ async def control_lights(request):
         np.write()
 
     return Response(ujson.dumps({"message": "Lights updated successfully!"}), content_type='application/json')
-def lights(request):
-    return send_file('lights.html')
+
 
 if __name__ == '__main__':
     setup_camera()
